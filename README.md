@@ -1,2 +1,26 @@
-# database
-SQLAlchemy 2.0 models, Alembic migrations and database schema for MatryoshkaAudit ecosystem
+# MatryoshkaAudit / Database
+
+Пакет `matryoshka_db`: SQLAlchemy 2.0 асинхронные модели, менеджер сессий и сид-данные для платформы **MatryoshkaAudit**.
+
+## Основные модели
+- `Product`: Изделия (Харвестер ЛХ-4, тракторы, лесосечные машины)
+- `Component`: Многоуровневый граф комплектующих (Tier 1-3), метрики CFI (O-Ring), страна происхождения, риски
+- `Supplier`: Поставщики, юрисдикции, транзитные хабы, санкционный статус
+- `Analog`: Каталог отечественных аналогов, стоимость адаптации (redesign cost), сроки внедрения
+- `PolicyRule`: Нормативные пороги баллов и адвалорной доли по ПП РФ № 719
+- `CountryRisk`: Матрица геополитических рисков и санкционных пакетов
+- `Certificate`: Цифровые заключения о соответствии и сертификаты происхождения
+- `AuditLog`: Журнал событий аудита с криптографическим хэшем SHA-256
+
+## Быстрый запуск
+
+```bash
+# 1. Запуск PostgreSQL и Redis
+docker compose -f docker-compose.base.yml up -d
+
+# 2. Установка пакета в виртуальное окружение
+pip install -e .
+
+# 3. Заполнение базы данных эталонным кейсом ЛХ-4
+python -m matryoshka_db.seed_data
+```

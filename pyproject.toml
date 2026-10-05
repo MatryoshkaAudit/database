@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matryoshka-database"
+version = "0.1.0"
+description = "SQLAlchemy 2.0 async database models, connection management and migrations for MatryoshkaAudit"
+authors = [{ name = "MatryoshkaAudit Engineering Team" }]
+requires-python = ">=3.10"
+dependencies = [
+    "sqlalchemy>=2.0.25",
+    "asyncpg>=0.29.0",
+    "alembic>=1.13.0",
+    "pydantic-settings>=2.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["matryoshka_db*"]
