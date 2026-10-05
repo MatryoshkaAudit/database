@@ -13,6 +13,7 @@ from matryoshka_db.db_models import (
     CountryRisk,
     Certificate,
     AuditLog,
+    User,
     ComplianceStatusEnum,
     SanctionsStatusEnum,
     AuditActorTypeEnum,
@@ -24,11 +25,42 @@ def calc_cfi(criticality: float, risk: float, analog_avail: float) -> float:
     return round(criticality * risk * (1.0 - analog_avail), 4)
 
 
+async def seed_users(session):
+    from sqlalchemy import select
+    res = await session.execute(select(User).limit(1))
+    if not res.scalar_one_or_none():
+        users = [
+            User.create_with_password(
+                email="engineer@lestechmash.ru",
+                password="Password123!",
+                full_name="Смирнов Алексей Петрович",
+                role="enterprise_engineer",
+                organization="АО «Лестехмаш»",
+                department="Отдел Главного Конструктора",
+                inn="3525184920",
+            ),
+            User.create_with_password(
+                email="inspector@minpromtorg.gov.ru",
+                password="Password123!",
+                full_name="Лесных Иван Васильевич",
+                role="regulator_admin",
+                organization="Минпромторг РФ",
+                department="Ситуационный Центр ДСПСДМ",
+                inn="7705596339",
+            ),
+        ]
+        session.add_all(users)
+        await session.commit()
+        print("✓ Учётные записи Завода и Минпромторга РФ успешно созданы!")
+
+
 async def seed_database():
     """Заполнение базы данных эталонным кейсом лесозаготовительного харвестера ЛХ-4"""
     await db_manager.init_db()
     async with db_manager.get_session() as session:
-        # Проверка идемпотентности
+        await seed_users(session)
+
+        # Проверка идемпотентности продуктов
         from sqlalchemy import select
         res = await session.execute(select(Product).limit(1))
         if res.scalar_one_or_none():
