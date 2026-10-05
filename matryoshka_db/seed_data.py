@@ -26,7 +26,15 @@ def calc_cfi(criticality: float, risk: float, analog_avail: float) -> float:
 
 async def seed_database():
     """Заполнение базы данных эталонным кейсом лесозаготовительного харвестера ЛХ-4"""
+    await db_manager.init_db()
     async with db_manager.get_session() as session:
+        # Проверка идемпотентности
+        from sqlalchemy import select
+        res = await session.execute(select(Product).limit(1))
+        if res.scalar_one_or_none():
+            print("✓ База данных уже содержит начальные данные (идемпотентно)")
+            return
+
         # 1. Справочник страновых рисков
         country_risks = [
             CountryRisk(country_code="RU", country_name="Российская Федерация", risk_factor=0.0, is_unfriendly=False),

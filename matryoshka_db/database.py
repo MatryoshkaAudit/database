@@ -19,10 +19,9 @@ class DatabaseManager:
     def __init__(self, database_url: str | None = None):
         self.database_url = (
             database_url
-            or os.getenv(
-                "DATABASE_URL",
-                "postgresql+asyncpg://matryoshka:matryoshka_pass@localhost:5432/matryoshka_db",
-            )
+            or os.getenv("DATABASE_URL")
+            or os.getenv("DB_URL")
+            or "postgresql+asyncpg://matryoshka:matryoshka_pass@localhost:5432/matryoshka_db"
         )
 
         self.engine: AsyncEngine = create_async_engine(
@@ -52,6 +51,12 @@ class DatabaseManager:
                 raise
             finally:
                 await session.close()
+
+    async def init_db(self):
+        from matryoshka_db.db_models.base import Base
+        async with self.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Таблицы базы данных MatryoshkaAudit инициализированы")
 
     async def close(self):
         await self.engine.dispose()
