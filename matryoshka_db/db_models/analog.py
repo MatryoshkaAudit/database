@@ -16,6 +16,7 @@ class Analog(Base, TimestampMixin):
     redesign_cost_rub: Mapped[float] = mapped_column(Float, default=0.0) # Затраты на адаптацию схемотехники
     lead_time_days: Mapped[int] = mapped_column(Integer, default=30)
     compatibility_score: Mapped[float] = mapped_column(Float, default=1.0) # 1.0 (drop-in) или 0.7 (нужна плата)
+    compatibility_status: Mapped[str] = mapped_column(String(50), default="FULL_COMPATIBLE")
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     component: Mapped["Component"] = relationship("Component", back_populates="analogs")

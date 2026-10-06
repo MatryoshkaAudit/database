@@ -27,6 +27,11 @@ class Component(Base, TimestampMixin):
     country_risk: Mapped[float] = mapped_column(Float, default=0.0) # 0.0 (РФ) .. 1.0 (ЕС/США)
     analog_availability: Mapped[float] = mapped_column(Float, default=1.0) # 1.0 (drop-in) .. 0.0 (нет)
     
+    # Статус наличия аналогов:
+    # "FULL_COMPATIBLE" (Совместим полностью), "REQUIRES_REWORK" (Требует доработки),
+    # "POORLY_COMPATIBLE" (Практически несовместим), "NO_ANALOGS" (Аналоги отсутствуют)
+    analog_status: Mapped[str] = mapped_column(String(50), default="NO_ANALOGS")
+
     # Critical Failure Index = Criticality * Risk * (1 - AnalogAvail)
     cfi_score: Mapped[float] = mapped_column(Float, default=0.0)
     is_chokepoint: Mapped[bool] = mapped_column(Boolean, default=False)
