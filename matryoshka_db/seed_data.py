@@ -51,7 +51,7 @@ async def seed_users(session):
             User.create_with_password(
                 email="inspector@minpromtorg.gov.ru",
                 password="Password123!",
-                full_name="Лесных Иван Васильевич",
+                full_name="Лесных Иван Сергеевич",
                 role="regulator_admin",
                 organization="Минпромторг РФ",
                 department="Ситуационный Центр ДСПСДМ",
