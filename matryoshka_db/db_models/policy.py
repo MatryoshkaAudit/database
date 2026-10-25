@@ -1,5 +1,6 @@
-from sqlalchemy import String, Float, Integer, Boolean
+from sqlalchemy import Boolean, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
+
 from matryoshka_db.db_models.base import Base, TimestampMixin
 
 

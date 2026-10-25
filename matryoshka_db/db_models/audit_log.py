@@ -1,5 +1,6 @@
-from sqlalchemy import String, Integer, JSON, Enum
+from sqlalchemy import JSON, Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
+
 from matryoshka_db.db_models.base import Base, TimestampMixin
 from matryoshka_db.db_models.enum_models import AuditActorTypeEnum
 

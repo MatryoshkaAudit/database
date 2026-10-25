@@ -1,6 +1,8 @@
 from datetime import datetime
-from sqlalchemy import String, Float, Integer, ForeignKey, Enum
+
+from sqlalchemy import Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from matryoshka_db.db_models.base import Base, TimestampMixin
 from matryoshka_db.db_models.enum_models import ComplianceStatusEnum
 

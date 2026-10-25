@@ -1,5 +1,6 @@
-from sqlalchemy import String, Float, Integer, Boolean, ForeignKey
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from matryoshka_db.db_models.base import Base, TimestampMixin
 
 
@@ -26,7 +27,7 @@ class Component(Base, TimestampMixin):
     criticality: Mapped[float] = mapped_column(Float, default=1.0) # 0.0 .. 1.0 (важность узла для работы машины)
     country_risk: Mapped[float] = mapped_column(Float, default=0.0) # 0.0 (РФ) .. 1.0 (ЕС/США)
     analog_availability: Mapped[float] = mapped_column(Float, default=1.0) # 1.0 (drop-in) .. 0.0 (нет)
-    
+
     # Статус наличия аналогов:
     # "FULL_COMPATIBLE" (Совместим полностью), "REQUIRES_REWORK" (Требует доработки),
     # "POORLY_COMPATIBLE" (Практически несовместим), "NO_ANALOGS" (Аналоги отсутствуют)

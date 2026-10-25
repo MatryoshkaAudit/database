@@ -1,7 +1,7 @@
 import hashlib
-import os
 import secrets
-from sqlalchemy import String, Boolean, DateTime, func
+
+from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from matryoshka_db.db_models.base import Base, TimestampMixin
@@ -17,10 +17,10 @@ class User(Base, TimestampMixin):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     password_salt: Mapped[str] = mapped_column(String(64), nullable=False)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    
+
     # Роли: 'enterprise_engineer' (Завод) | 'regulator_admin' (Минпромторг РФ)
     role: Mapped[str] = mapped_column(String(64), nullable=False, default="enterprise_engineer", index=True)
-    
+
     organization: Mapped[str] = mapped_column(String(255), nullable=False)
     department: Mapped[str] = mapped_column(String(255), nullable=True)
     inn: Mapped[str] = mapped_column(String(12), nullable=True)
