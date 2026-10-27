@@ -1,7 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
+def get_utc_now() -> datetime:
+    """Возвращает текущее время в UTC без tzinfo для совместимости с PostgreSQL TIMESTAMP"""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 
 # Соглашение об именовании ограничений для Alembic
 convention = {
@@ -20,5 +26,5 @@ class Base(DeclarativeBase):
 
 
 class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=get_utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=get_utc_now, onupdate=get_utc_now)
