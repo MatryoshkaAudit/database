@@ -52,5 +52,7 @@ class User(Base, TimestampMixin):
         )
 
     def verify_password(self, password: str) -> bool:
-        check = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), self.password_salt.encode("utf-8"), 100_000).hex()
+        check = hashlib.pbkdf2_hmac(
+            "sha256", password.encode("utf-8"), self.password_salt.encode("utf-8"), 100_000
+        ).hex()
         return secrets.compare_digest(self.password_hash, check)

@@ -16,10 +16,10 @@ class SanctionsStatusEnum(str, Enum):
 
 
 class CountryRiskEnum(str, Enum):
-    LOW = "low"          # РФ, Беларусь, ЕАЭС (Риск: 0.0 - 0.1)
-    MEDIUM = "medium"    # Дружественные страны / нейтральные (Китай, Турция, Индия) (0.3 - 0.5)
-    HIGH = "high"        # Санкционные страны ЕС/G7 (0.9 - 1.0)
-    CRITICAL = "critical"# Прямой запрет на экспорт технологий (1.0)
+    LOW = "low"  # РФ, Беларусь, ЕАЭС (Риск: 0.0 - 0.1)
+    MEDIUM = "medium"  # Дружественные страны / нейтральные (Китай, Турция, Индия) (0.3 - 0.5)
+    HIGH = "high"  # Санкционные страны ЕС/G7 (0.9 - 1.0)
+    CRITICAL = "critical"  # Прямой запрет на экспорт технологий (1.0)
 
 
 class AuditActorTypeEnum(str, Enum):

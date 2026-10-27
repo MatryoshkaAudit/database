@@ -13,8 +13,8 @@ class Component(Base, TimestampMixin):
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     article: Mapped[str] = mapped_column(String(100), nullable=False)
-    tier: Mapped[int] = mapped_column(Integer, default=1) # 1, 2, 3
-    hs_code: Mapped[str] = mapped_column(String(20), default="") # Код ТН ВЭД
+    tier: Mapped[int] = mapped_column(Integer, default=1)  # 1, 2, 3
+    hs_code: Mapped[str] = mapped_column(String(20), default="")  # Код ТН ВЭД
 
     country_code: Mapped[str] = mapped_column(String(3), default="RU")
     manufacturer: Mapped[str] = mapped_column(String(255), default="")
@@ -24,9 +24,9 @@ class Component(Base, TimestampMixin):
     quantity: Mapped[float] = mapped_column(Float, default=1.0)
 
     # Метрики риска и O-Ring
-    criticality: Mapped[float] = mapped_column(Float, default=1.0) # 0.0 .. 1.0 (важность узла для работы машины)
-    country_risk: Mapped[float] = mapped_column(Float, default=0.0) # 0.0 (РФ) .. 1.0 (ЕС/США)
-    analog_availability: Mapped[float] = mapped_column(Float, default=1.0) # 1.0 (drop-in) .. 0.0 (нет)
+    criticality: Mapped[float] = mapped_column(Float, default=1.0)  # 0.0 .. 1.0 (важность узла для работы машины)
+    country_risk: Mapped[float] = mapped_column(Float, default=0.0)  # 0.0 (РФ) .. 1.0 (ЕС/США)
+    analog_availability: Mapped[float] = mapped_column(Float, default=1.0)  # 1.0 (drop-in) .. 0.0 (нет)
 
     # Статус наличия аналогов:
     # "FULL_COMPATIBLE" (Совместим полностью), "REQUIRES_REWORK" (Требует доработки),
@@ -43,5 +43,7 @@ class Component(Base, TimestampMixin):
     product: Mapped["Product"] = relationship("Product", back_populates="components")
     supplier: Mapped["Supplier | None"] = relationship("Supplier", back_populates="components")
     parent: Mapped["Component | None"] = relationship("Component", remote_side=[id], back_populates="children")
-    children: Mapped[list["Component"]] = relationship("Component", back_populates="parent", cascade="all, delete-orphan")
+    children: Mapped[list["Component"]] = relationship(
+        "Component", back_populates="parent", cascade="all, delete-orphan"
+    )
     analogs: Mapped[list["Analog"]] = relationship("Analog", back_populates="component", cascade="all, delete-orphan")

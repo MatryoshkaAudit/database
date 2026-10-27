@@ -16,7 +16,7 @@ class Supplier(Base, TimestampMixin):
         Enum(SanctionsStatusEnum), default=SanctionsStatusEnum.CLEAN
     )
     reliability_rating: Mapped[float] = mapped_column(Float, default=1.0)
-    transit_jurisdictions: Mapped[str | None] = mapped_column(String(255), nullable=True) # e.g. "KZ,AE"
+    transit_jurisdictions: Mapped[str | None] = mapped_column(String(255), nullable=True)  # e.g. "KZ,AE"
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     components: Mapped[list["Component"]] = relationship("Component", back_populates="supplier")

@@ -20,8 +20,10 @@ class Product(Base, TimestampMixin):
 
     # Статус стратегической важности для Минпромторга РФ и ИИ-аудита
     is_strategic: Mapped[bool] = mapped_column(Boolean, default=False)
-    strategic_priority: Mapped[str] = mapped_column(String(50), default="NORMAL") # "CRITICAL", "HIGH", "NORMAL"
+    strategic_priority: Mapped[str] = mapped_column(String(50), default="NORMAL")  # "CRITICAL", "HIGH", "NORMAL"
     strategic_notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
-    components: Mapped[list["Component"]] = relationship("Component", back_populates="product", cascade="all, delete-orphan")
+    components: Mapped[list["Component"]] = relationship(
+        "Component", back_populates="product", cascade="all, delete-orphan"
+    )
     certificates: Mapped[list["Certificate"]] = relationship("Certificate", back_populates="product")

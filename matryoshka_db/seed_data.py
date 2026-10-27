@@ -1,5 +1,7 @@
 import asyncio
 import hashlib
+import logging
+import os
 from datetime import datetime, timedelta
 
 from matryoshka_db.database import db_manager
@@ -18,6 +20,8 @@ from matryoshka_db.db_models import (
     User,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def calc_cfi(criticality: float, risk: float, analog_avail: float) -> float:
     """Формула CFI = Criticality * Risk * (1 - AnalogAvail)"""
@@ -26,12 +30,14 @@ def calc_cfi(criticality: float, risk: float, analog_avail: float) -> float:
 
 async def seed_users(session):
     from sqlalchemy import select
+
     res = await session.execute(select(User).limit(1))
     if not res.scalar_one_or_none():
+        seed_password = os.getenv("SEED_USER_PASSWORD", "Password123!")
         users = [
             User.create_with_password(
                 email="engineer@lestechmash.ru",
-                password="Password123!",
+                password=seed_password,
                 full_name="Смирнов Алексей Петрович",
                 role="enterprise_engineer",
                 organization="АО «Лестехмаш»",
@@ -40,7 +46,7 @@ async def seed_users(session):
             ),
             User.create_with_password(
                 email="engineer@stankomash.ru",
-                password="Password123!",
+                password=seed_password,
                 full_name="Ковалев Дмитрий Сергеевич",
                 role="enterprise_engineer",
                 organization="АО «Станкомаш-Холдинг»",
@@ -49,7 +55,7 @@ async def seed_users(session):
             ),
             User.create_with_password(
                 email="inspector@minpromtorg.gov.ru",
-                password="Password123!",
+                password=seed_password,
                 full_name="Лесных Иван Сергеевич",
                 role="regulator_admin",
                 organization="Минпромторг РФ",
@@ -59,7 +65,7 @@ async def seed_users(session):
         ]
         session.add_all(users)
         await session.commit()
-        print("✓ Учётные записи Заводов и Минпромторга РФ успешно созданы!")
+        logger.info("Учётные записи Заводов и Минпромторга РФ успешно созданы!")
 
 
 async def seed_database():
@@ -70,28 +76,102 @@ async def seed_database():
 
         # Проверка наличия продуктов
         from sqlalchemy import select
+
         res = await session.execute(select(Product).limit(1))
         if res.scalar_one_or_none():
-            print("✓ База данных уже содержит начальные данные (идемпотентно)")
+            logger.info("База данных уже содержит начальные данные (идемпотентно)")
             return
 
         # 1. Государственный справочник страновых рисков (Минпромторг РФ)
         country_risks = [
             CountryRisk(country_code="RU", country_name="Российская Федерация", risk_factor=0.0, is_unfriendly=False),
-            CountryRisk(country_code="BY", country_name="Республика Беларусь (Союзное гос-во)", risk_factor=0.0, is_unfriendly=False),
-            CountryRisk(country_code="KZ", country_name="Республика Казахстан (ЕАЭС / Транзит)", risk_factor=0.35, is_unfriendly=False),
-            CountryRisk(country_code="CN", country_name="Китайская Народная Республика (КНР)", risk_factor=0.25, is_unfriendly=False),
+            CountryRisk(
+                country_code="BY",
+                country_name="Республика Беларусь (Союзное гос-во)",
+                risk_factor=0.0,
+                is_unfriendly=False,
+            ),
+            CountryRisk(
+                country_code="KZ",
+                country_name="Республика Казахстан (ЕАЭС / Транзит)",
+                risk_factor=0.35,
+                is_unfriendly=False,
+            ),
+            CountryRisk(
+                country_code="CN",
+                country_name="Китайская Народная Республика (КНР)",
+                risk_factor=0.25,
+                is_unfriendly=False,
+            ),
             CountryRisk(country_code="IN", country_name="Республика Индия", risk_factor=0.25, is_unfriendly=False),
-            CountryRisk(country_code="TR", country_name="Турецкая Республика (Транзитный хаб)", risk_factor=0.50, is_unfriendly=False),
-            CountryRisk(country_code="AE", country_name="Объединенные Арабские Эмираты (ОАЭ)", risk_factor=0.50, is_unfriendly=False),
-            CountryRisk(country_code="CH", country_name="Швейцарская Конфедерация", risk_factor=0.95, is_unfriendly=True, sanctions_regime="EU Sanctions"),
-            CountryRisk(country_code="DE", country_name="Федеративная Республика Германия", risk_factor=0.95, is_unfriendly=True, sanctions_regime="EU Package 14"),
-            CountryRisk(country_code="US", country_name="Соединенные Штаты Америки", risk_factor=1.0, is_unfriendly=True, sanctions_regime="US OFAC / BIS SDN"),
-            CountryRisk(country_code="DK", country_name="Королевство Дания", risk_factor=0.90, is_unfriendly=True, sanctions_regime="EU Sanctions"),
-            CountryRisk(country_code="FR", country_name="Французская Республика", risk_factor=0.95, is_unfriendly=True, sanctions_regime="EU Sanctions"),
-            CountryRisk(country_code="TW", country_name="Тайвань (TSMC / Полупроводники)", risk_factor=0.95, is_unfriendly=True, sanctions_regime="US Export Control"),
-            CountryRisk(country_code="JP", country_name="Япония", risk_factor=0.95, is_unfriendly=True, sanctions_regime="METI Export Control"),
-            CountryRisk(country_code="IT", country_name="Итальянская Республика", risk_factor=0.90, is_unfriendly=True, sanctions_regime="EU Sanctions"),
+            CountryRisk(
+                country_code="TR",
+                country_name="Турецкая Республика (Транзитный хаб)",
+                risk_factor=0.50,
+                is_unfriendly=False,
+            ),
+            CountryRisk(
+                country_code="AE",
+                country_name="Объединенные Арабские Эмираты (ОАЭ)",
+                risk_factor=0.50,
+                is_unfriendly=False,
+            ),
+            CountryRisk(
+                country_code="CH",
+                country_name="Швейцарская Конфедерация",
+                risk_factor=0.95,
+                is_unfriendly=True,
+                sanctions_regime="EU Sanctions",
+            ),
+            CountryRisk(
+                country_code="DE",
+                country_name="Федеративная Республика Германия",
+                risk_factor=0.95,
+                is_unfriendly=True,
+                sanctions_regime="EU Package 14",
+            ),
+            CountryRisk(
+                country_code="US",
+                country_name="Соединенные Штаты Америки",
+                risk_factor=1.0,
+                is_unfriendly=True,
+                sanctions_regime="US OFAC / BIS SDN",
+            ),
+            CountryRisk(
+                country_code="DK",
+                country_name="Королевство Дания",
+                risk_factor=0.90,
+                is_unfriendly=True,
+                sanctions_regime="EU Sanctions",
+            ),
+            CountryRisk(
+                country_code="FR",
+                country_name="Французская Республика",
+                risk_factor=0.95,
+                is_unfriendly=True,
+                sanctions_regime="EU Sanctions",
+            ),
+            CountryRisk(
+                country_code="TW",
+                country_name="Тайвань (TSMC / Полупроводники)",
+                risk_factor=0.95,
+                is_unfriendly=True,
+                sanctions_regime="US Export Control",
+            ),
+            CountryRisk(
+                country_code="JP",
+                country_name="Япония",
+                risk_factor=0.95,
+                is_unfriendly=True,
+                sanctions_regime="METI Export Control",
+            ),
+            CountryRisk(
+                country_code="IT",
+                country_name="Итальянская Республика",
+                risk_factor=0.90,
+                is_unfriendly=True,
+                sanctions_regime="EU Sanctions",
+            ),
         ]
         session.add_all(country_risks)
 
@@ -116,14 +196,66 @@ async def seed_database():
 
         # 3. Поставщики
         suppliers = [
-            Supplier(name="ООО 'Лестехмаш'", inn="3525184920", country_code="RU", sanctions_status=SanctionsStatusEnum.CLEAN, reliability_rating=0.95),
-            Supplier(name="ПАО 'Автодизель' (ЯМЗ)", inn="7601001234", country_code="RU", sanctions_status=SanctionsStatusEnum.CLEAN, reliability_rating=0.90),
-            Supplier(name="АО 'Концерн НПО Аврора'", inn="7802345678", country_code="RU", sanctions_status=SanctionsStatusEnum.CLEAN, reliability_rating=0.92),
-            Supplier(name="Silk Road Logistics (Алматы)", country_code="KZ", sanctions_status=SanctionsStatusEnum.WATCHLIST, reliability_rating=0.60, transit_jurisdictions="KZ,AE", notes="Канал серого и параллельного импорта"),
-            Supplier(name="EuroHydraulics Export GmbH", country_code="DE", sanctions_status=SanctionsStatusEnum.EMBARGOED, reliability_rating=0.10, notes="Прямой запрет на отгрузки в РФ"),
-            Supplier(name="АО 'ПКК Микрон'", inn="7735012345", country_code="RU", sanctions_status=SanctionsStatusEnum.CLEAN, reliability_rating=0.98, notes="Отечественный производитель интегральных микросхем"),
-            Supplier(name="АО 'НИИЭТ'", inn="3662005432", country_code="RU", sanctions_status=SanctionsStatusEnum.CLEAN, reliability_rating=0.94, notes="Разработчик отечественных 32-разрядных микроконтроллеров"),
-            Supplier(name="ООО 'АЗПИ'", inn="2224010011", country_code="RU", sanctions_status=SanctionsStatusEnum.CLEAN, reliability_rating=0.95, notes="Алтайский завод прецизионных изделий"),
+            Supplier(
+                name="ООО 'Лестехмаш'",
+                inn="3525184920",
+                country_code="RU",
+                sanctions_status=SanctionsStatusEnum.CLEAN,
+                reliability_rating=0.95,
+            ),
+            Supplier(
+                name="ПАО 'Автодизель' (ЯМЗ)",
+                inn="7601001234",
+                country_code="RU",
+                sanctions_status=SanctionsStatusEnum.CLEAN,
+                reliability_rating=0.90,
+            ),
+            Supplier(
+                name="АО 'Концерн НПО Аврора'",
+                inn="7802345678",
+                country_code="RU",
+                sanctions_status=SanctionsStatusEnum.CLEAN,
+                reliability_rating=0.92,
+            ),
+            Supplier(
+                name="Silk Road Logistics (Алматы)",
+                country_code="KZ",
+                sanctions_status=SanctionsStatusEnum.WATCHLIST,
+                reliability_rating=0.60,
+                transit_jurisdictions="KZ,AE",
+                notes="Канал серого и параллельного импорта",
+            ),
+            Supplier(
+                name="EuroHydraulics Export GmbH",
+                country_code="DE",
+                sanctions_status=SanctionsStatusEnum.EMBARGOED,
+                reliability_rating=0.10,
+                notes="Прямой запрет на отгрузки в РФ",
+            ),
+            Supplier(
+                name="АО 'ПКК Микрон'",
+                inn="7735012345",
+                country_code="RU",
+                sanctions_status=SanctionsStatusEnum.CLEAN,
+                reliability_rating=0.98,
+                notes="Отечественный производитель интегральных микросхем",
+            ),
+            Supplier(
+                name="АО 'НИИЭТ'",
+                inn="3662005432",
+                country_code="RU",
+                sanctions_status=SanctionsStatusEnum.CLEAN,
+                reliability_rating=0.94,
+                notes="Разработчик отечественных 32-разрядных микроконтроллеров",
+            ),
+            Supplier(
+                name="ООО 'АЗПИ'",
+                inn="2224010011",
+                country_code="RU",
+                sanctions_status=SanctionsStatusEnum.CLEAN,
+                reliability_rating=0.95,
+                notes="Алтайский завод прецизионных изделий",
+            ),
         ]
         session.add_all(suppliers)
         await session.flush()
@@ -211,7 +343,7 @@ async def seed_database():
             country_risk=0.95,
             analog_availability=0.05,
             analog_status="NO_ANALOGS",
-            cfi_score=calc_cfi(1.0, 0.95, 0.05), # 0.9025
+            cfi_score=calc_cfi(1.0, 0.95, 0.05),  # 0.9025
             is_chokepoint=True,
             lead_time_days=180,
             notes="КРИТИЧЕСКИЙ УЗЕЛ! Чип за 1850 ₽. Без него гидроблок не работает, станок парализован. Поставляется по серому импорту.",
@@ -369,7 +501,7 @@ async def seed_database():
             country_risk=1.0,
             analog_availability=0.0,
             analog_status="NO_ANALOGS",
-            cfi_score=calc_cfi(1.0, 1.0, 0.0), # 1.0 (Максимальный стоп-фактор)
+            cfi_score=calc_cfi(1.0, 1.0, 0.0),  # 1.0 (Максимальный стоп-фактор)
             is_chokepoint=True,
             lead_time_days=240,
             notes="АБСОЛЮТНЫЙ CHOKEPOINT (CFI = 1.0). Обрабатывает оптические датчики ствола. Запрет экспортного контроля США.",
@@ -520,7 +652,7 @@ async def seed_database():
             country_risk=0.95,
             analog_availability=0.10,
             analog_status="NO_ANALOGS",
-            cfi_score=calc_cfi(1.0, 0.95, 0.10), # 0.855
+            cfi_score=calc_cfi(1.0, 0.95, 0.10),  # 0.855
             is_chokepoint=True,
             lead_time_days=150,
             notes="КРИТИЧЕСКИЙ УЗЕЛ! Без оптической точности 1 мкм станок теряет класс точности и не может обрабатывать лопатки турбин.",
@@ -543,7 +675,7 @@ async def seed_database():
             country_risk=0.95,
             analog_availability=0.20,
             analog_status="POORLY_COMPATIBLE",
-            cfi_score=calc_cfi(1.0, 0.95, 0.20), # 0.76
+            cfi_score=calc_cfi(1.0, 0.95, 0.20),  # 0.76
             is_chokepoint=True,
             lead_time_days=180,
             notes="Япония заблокировала экспорт прецизионных направляющих класса C3 в РФ.",
@@ -681,7 +813,7 @@ async def seed_database():
         session.add(audit_p1)
 
         await session.commit()
-        print("✓ База данных MatryoshkaAudit успешно заполнена эталонными данными реальных предприятий!")
+        logger.info("База данных MatryoshkaAudit успешно заполнена эталонными данными реальных предприятий!")
 
 
 if __name__ == "__main__":
